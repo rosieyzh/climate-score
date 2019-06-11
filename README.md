@@ -1,1 +1,1 @@
-# climate-score
+# ClimateTimes
