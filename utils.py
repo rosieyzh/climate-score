@@ -20,12 +20,11 @@ from gensim.models import Word2Vec
 
 
 #For wordcloud/text visualization
-!pip install wordcloud
 from PIL import Image
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 
 import matplotlib.pyplot as plt
-
+import requests
 
 
 def get_articles(data, filters=None):
@@ -74,6 +73,7 @@ def preprocess_articles(articles):
   new_articles = [re.sub(r'{}'.format(stop_re), '',article.lower()) for article in new_articles]
   print("Stop words removed successfully.")
 
+  new_articles = [re.sub(r"[']",'',article) for article in articles]
   new_articles = [article.split() for article in new_articles]
   print("Words tokenized successfully.")
 
@@ -97,15 +97,30 @@ def preprocess_articles(articles):
                                                              
          
                                                     
-def wordcloud_filtered(data, filters):
-  articles = get_articles(data,filters)
-  train_phrased = preprocess_articles(articles)
-  
-  #generate wordcloud
-  
-  wordcloud = WordCloud().generate(' '.join(word for article in train_phrased for word in article))
-  plt.imshow(wordcloud, interpolation = 'bilinear')
-  plt.show()
-  
-  return wordcloud
+def give_wordcloud(topic, corpus):
+  '''
+  Input: 
+  topic: Integer representing topic outputted by LDA Model
+  corpus: Preprocessed corpus tokenized by word
+
+  Output:
+  Saves a .png image file of wordcloud
+  '''
+  relevant_articles=""
+  count=0
+  for index, row in corpus.iterrows():
+    if row['topic']==topic:
+      count=count+1
+      relevant_articles = relevant_articles + ' '.join(word for word in row['content'])
+  print("topic: {}, count: {}".format(topic+1, count))
+  generate_wordcloud(relevant_articles, mask, topic)
+
+def generate_wordcloud(words, mask, topic):
+    word_cloud = WordCloud(width = 512, height = 512, background_color='white', stopwords=stop_words, mask=mask).generate(words)
+    plt.figure(figsize=(10,8),facecolor = 'white', edgecolor='blue')
+    plt.imshow(word_cloud)
+    plt.axis('off')
+    plt.tight_layout(pad=0)
+    plt.savefig('./topic_{}.png'.format(topic+1), bbox_inches='tight')
+   
   
